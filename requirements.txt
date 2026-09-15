@@ -1,0 +1,8 @@
+# 1. Initialize npm
+npm init -y
+# 2. Install dependencies
+npm install express body-parser cors
+# 3. Run server
+node server.js
+# 4. Open browser
+# http://localhost:3000
