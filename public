@@ -1,1 +1,392 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Cracker - Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff00;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 2px solid #00ff00;
+            padding: 30px;
+            background: #0f1419;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #00ff00;
+            font-size: 32px;
+        }
+
+        .control-panel {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .network-list {
+            border: 1px solid #00ff00;
+            background: #0a0e27;
+            max-height: 250px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .network-item {
+            padding: 12px;
+            border-bottom: 1px solid #003300;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .network-item:hover {
+            background: #1a3a1a;
+        }
+
+        .network-item.selected {
+            background: #003300;
+            border-left: 4px solid #00ff00;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            background: #0a0e27;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]::placeholder {
+            color: #00aa00;
+        }
+
+        .progress-section {
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #000;
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00aa00);
+            width: 0%;
+            transition: width 0.2s;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .status-log {
+            border: 1px solid #00ff00;
+            background: #0a0e27;
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .status-line {
+            color: #00ff00;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .status-line.success {
+            color: #00ff00;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .status-line.error {
+            color: #ff0000;
+        }
+
+        .status-line.info {
+            color: #00aaff;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #1a3a1a;
+            border-left: 4px solid #00ff00;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: #0a0e27;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #00aa00;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ WiFi CRACKER ⚡</h1>
+
+    <div class="control-panel">
+        <button id="scanBtn" onclick="scanNetworks()">🔍 SCAN NETWORKS</button>
+    </div>
+
+    <label><strong>Available Networks:</strong></label>
+    <div class="network-list" id="networkList">
+        <div class="network-item" style="color: #00aa00;">Waiting for scan...</div>
+    </div>
+
+    <label><strong>Wordlist Path:</strong></label>
+    <input type="text" id="wordlistPath" placeholder="/path/to/wordlist.txt or leave empty for default" />
+
+    <div class="control-panel">
+        <button id="attackBtn" onclick="startAttack()" disabled>⚔️ START ATTACK</button>
+    </div>
+
+    <div class="info-box">
+        ℹ️ Select a network from the list, optionally specify a custom wordlist, then click START ATTACK.
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-value" id="attemptCount">0</div>
+            <div class="stat-label">Attempts</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value" id="statusIndicator">READY</div>
+            <div class="stat-label">Status</div>
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <label><strong>Progress:</strong></label>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <label><strong>Status Log:</strong></label>
+    <div class="status-log" id="statusLog"></div>
+
+</div>
+
+<script>
+    let selectedNetwork = null;
+    let isAttacking = false;
+
+    async function scanNetworks() {
+        const scanBtn = document.getElementById('scanBtn');
+        scanBtn.disabled = true;
+        logStatus('info', '[*] Scanning for WiFi networks...');
+
+        try {
+            const response = await fetch('/api/scan', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                displayNetworks(data.networks);
+                logStatus('info', `[✓] Found ${data.networks.length} networks`);
+            } else {
+                logStatus('error', `[✗] Scan failed: ${data.error}`);
+            }
+        } catch (error) {
+            logStatus('error', `[✗] Error: ${error.message}`);
+        } finally {
+            scanBtn.disabled = false;
+        }
+    }
+
+    function displayNetworks(networks) {
+        const listDiv = document.getElementById('networkList');
+        listDiv.innerHTML = '';
+
+        networks.forEach((net, idx) => {
+            const item = document.createElement('div');
+            item.className = 'network-item';
+            item.textContent = `${net.ssid} | Signal: ${net.signal}`;
+            item.onclick = () => selectNetwork(net, item, idx);
+            listDiv.appendChild(item);
+        });
+    }
+
+    function selectNetwork(network, element, idx) {
+        document.querySelectorAll('.network-item').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedNetwork = network;
+        document.getElementById('attackBtn').disabled = false;
+        logStatus('info', `[→] Selected: ${network.ssid}`);
+    }
+
+    async function startAttack() {
+        if (!selectedNetwork) {
+            logStatus('error', '[✗] No network selected');
+            return;
+        }
+
+        if (isAttacking) {
+            logStatus('error', '[✗] Attack already running');
+            return;
+        }
+
+        const wordlistPath = document.getElementById('wordlistPath').value;
+        isAttacking = true;
+        document.getElementById('attackBtn').disabled = true;
+        document.getElementById('statusIndicator').textContent = 'ATTACKING';
+        document.getElementById('statusIndicator').style.color = '#ff0000';
+
+        logStatus('info', `[⚔] Starting attack on: ${selectedNetwork.ssid}`);
+
+        try {
+            const response = await fetch('/api/attack', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ssid: selectedNetwork.ssid,
+                    wordlistPath: wordlistPath || null
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                logStatus('info', data.message);
+                simulateProgress();
+            } else {
+                logStatus('error', `[✗] ${data.error}`);
+                isAttacking = false;
+                document.getElementById('attackBtn').disabled = false;
+                document.getElementById('statusIndicator').textContent = 'READY';
+                document.getElementById('statusIndicator').style.color = '#00ff00';
+            }
+        } catch (error) {
+            logStatus('error', `[✗] ${error.message}`);
+            isAttacking = false;
+            document.getElementById('attackBtn').disabled = false;
+            document.getElementById('statusIndicator').textContent = 'READY';
+            document.getElementById('statusIndicator').style.color = '#00ff00';
+        }
+    }
+
+    function simulateProgress() {
+        let progress = 0;
+        let attempts = 0;
+
+        const interval = setInterval(() => {
+            attempts += Math.floor(Math.random() * 50) + 10;
+            progress = Math.min((attempts / 1000) * 100, 95);
+
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('attemptCount').textContent = attempts;
+
+            if (progress >= 95) {
+                clearInterval(interval);
+                // Simulate completion
+                setTimeout(() => {
+                    logStatus('success', '[✓] Attack sequence completed');
+                    document.getElementById('progressFill').style.width = '100%';
+                    document.getElementById('statusIndicator').textContent = 'COMPLETE';
+                    document.getElementById('statusIndicator').style.color = '#00ff00';
+                    isAttacking = false;
+                    document.getElementById('attackBtn').disabled = false;
+                }, 2000);
+            }
+        }, 100);
+    }
+
+    function logStatus(type, message) {
+        const logDiv = document.getElementById('statusLog');
+        const line = document.createElement('div');
+        line.className = `status-line ${type}`;
+        line.textContent = message;
+        logDiv.appendChild(line);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        logStatus('info', '[*] WiFi Cracker initialized. Click SCAN to begin.');
+    });
+</script>
+
+</body>
+</html>
